@@ -1,0 +1,11 @@
+id,brand,type,consumption,emission_level,load_capacity
+NY1234,Toyota,Car,8.5,0.1,4
+LA5678,Ford,Truck,12.2,0.2,10
+TX9102,Chevrolet,Truck,9.8,0.18,8
+WA3456,Honda,Car,7.5,0.08,4
+MI7890,Jeep,SUV,10.5,0.25,6
+MA2345,Nissan,Car,6.8,0.09,4
+FL6789,BMW,Car,9.2,0.15,4
+CO1234,Audi,Sedan,8.9,0.13,4
+AZ5678,Mercedes,Car,7.6,0.11,4
+TN9102,Hyundai,SUV,11.2,0.21,6

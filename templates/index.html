@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OLAP Service</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .container div {
+      width: 45%;
+      background-color: #f2f2f2;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .container h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    .container ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .container ul li {
+      margin-bottom: 5px;
+    }
+    button {
+      display: flex;
+      gap: 400px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #367b39;
+    }
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 50px;
+    }
+
+    .chart-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 50px;
+      margin-bottom: 50px;
+    }
+    .chart-button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+    }
+    .chart-image {
+      margin-top: 50px;
+      text-align: center;
+    }
+    .sort-icon {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown label {
+      margin-right: 5px;
+    }
+    .dropdown select {
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>OLAP Slices</h1>
+
+  <div class="btns">
+    <button onclick="getDeliveryCostByDriver()">Slice 1: Total delivery cost by driver</button>
+    <button onclick="getEmissionPerTripByVehicleType()">Slice 2: Total Emission per trip by vehicle type</button>
+    <button onclick="getAverageCargoWeightByRoute()">Slice 3: Average cargo weight by route</button>
+    <button onclick="getAverageDeliveryCostByDriver()">Slice 4: Average delivery cost per driver</button>
+    <button onclick="getDeliveryCostByCargoType()">Slice 5: Total Delivery cost by cargo type</button>
+  </div> 
+
+  <div class="container">
+    <div id="keys">
+      <ul id="keysList"></ul>
+    </div>
+    <div id="values">
+      <ul id="valuesList"></ul>
+      <div id="sortIcon" class="sort-icon" onclick="handleSortClick()">
+        <div class="dropdown">
+          <label for="sortSelect">Sort Order:</label>
+          <select id="sortSelect" onchange="handleSortClick()">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>OLAP Static Charts</h1>
+  <div class="chart-container">
+    <button class="chart-button" onclick="showChart('chart1')">Slice 1: Total delivery cost by driver</button>
+    <button class="chart-button" onclick="showChart('chart2')">Slice 2: Total Emission per trip by vehicle type</button>
+    <button class="chart-button" onclick="showChart('chart3')">Slice 3: Average cargo weight by route</button>
+    <button class="chart-button" onclick="showChart('chart4')">Slice 4: Average delivery cost per driver</button>
+    <button class="chart-button" onclick="showChart('chart5')">Slice 5: Total Delivery cost by cargo type</button>
+  </div>
+  <div id="chart-image-container" class="chart-container"></div>
+
+  <h1>OLAP Dynamic Charts</h1>
+  <div class="chart-container">
+    <button class="chart-button" onclick="loadDynamicChart('/dynamic_chart1')">Slice 1: Total delivery cost by driver</button>
+    <button class="chart-button" onclick="loadDynamicChart('/dynamic_chart2')">Slice 2: Total Emission per trip by vehicle type</button>
+    <button class="chart-button" onclick="loadDynamicChart('/dynamic_chart3')">Slice 3: Average cargo weight by route</button>
+  </div>
+  <div id="dynamic-chart"></div>
+
+  <script>
+    var activeButton = null;
+
+    function getSortOrder() {
+      const sortSelect = document.getElementById('sortSelect');
+      const selectedOption = sortSelect.options[sortSelect.selectedIndex].value;
+      return selectedOption;
+    }
+
+    function handleSortClick() {
+      const sortOrder = getSortOrder();
+      if (activeButton === 'getDeliveryCostByDriver') {
+        fetch('/slice1?sort=' + sortOrder)
+          .then(response => response.json())
+          .then(data => {
+            updateValuesList(data);
+          });
+      } else if (activeButton === 'getEmissionPerTripByVehicleType') {
+        fetch('/slice2?sort=' + sortOrder)
+          .then(response => response.json())
+          .then(data => {
+            updateValuesList(data);
+          });
+      } else if (activeButton === 'getAverageCargoWeightByRoute') {
+        fetch('/slice3?sort=' + sortOrder)
+          .then(response => response.json())
+          .then(data => {
+            updateValuesList(data);
+          });
+      } else if (activeButton === 'getAverageDeliveryCostByDriver') {
+        fetch('/slice4?sort=' + sortOrder)
+          .then(response => response.json())
+          .then(data => {
+            updateValuesList(data);
+          });
+      } else if (activeButton === 'getDeliveryCostByCargoType') {
+        fetch('/slice5?sort=' + sortOrder)
+          .then(response => response.json())
+          .then(data => {
+            updateValuesList(data);
+          });
+      }
+    }
+
+    // Function to update the values list with the sorted values
+    function updateValuesList(data) {
+      const valuesList = document.getElementById('valuesList');
+      const keysList = document.getElementById('keysList');
+      valuesList.innerHTML = '';
+      keysList.innerHTML = '';
+
+      for (const key in data) {
+        const listItem = document.createElement('li');
+        const keyItem = document.createElement('li');
+
+        listItem.textContent = data[key];
+        keyItem.textContent = key;
+
+        valuesList.appendChild(listItem);
+        keysList.appendChild(keyItem)
+      }
+    }
+  
+    window.addEventListener('DOMContentLoaded', function() {
+      getDeliveryCostByDriver();
+    });
+
+    function loadDynamicChart(chart) {
+      fetch(chart)
+        .then(response => response.json())
+        .then(data => {
+          Plotly.newPlot('dynamic-chart', data);
+        });
+    }
+
+    function fetchSliceData(url) {
+      return fetch(url)
+        .then(response => response.json())
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function renderSliceData(data) {
+      const keysList = document.getElementById('keysList');
+      const valuesList = document.getElementById('valuesList');
+
+      keysList.innerHTML = '';
+      valuesList.innerHTML = '';
+
+      // Render keys
+      Object.keys(data).forEach(key => {
+        const li = document.createElement('li');
+        li.textContent = key;
+        keysList.appendChild(li);
+      });
+
+      // Render values
+      Object.values(data).forEach(value => {
+        const li = document.createElement('li');
+        li.textContent = value;
+        valuesList.appendChild(li);
+      });
+    }
+
+    function showChart(chartId) {
+      fetch(`/${chartId}`)
+        .then(response => response.blob())
+        .then(data => {
+          const imgUrl = URL.createObjectURL(data);
+          const imgElement = document.createElement('img');
+          imgElement.src = imgUrl;
+          document.getElementById('chart-image-container').innerHTML = '';
+          document.getElementById('chart-image-container').appendChild(imgElement);
+        });
+    }
+
+    function getDeliveryCostByDriver() {
+      activeButton = "getDeliveryCostByDriver"
+      fetchSliceData('http://localhost:5000/slice1')
+        .then(data => {
+          renderSliceData(data);
+        });
+    }
+
+    function getEmissionPerTripByVehicleType() {
+      activeButton = "getEmissionPerTripByVehicleType"
+      fetchSliceData('http://localhost:5000/slice2')
+        .then(data => {
+          renderSliceData(data);
+        });
+    }
+
+    function getAverageCargoWeightByRoute() {
+      activeButton = "getAverageCargoWeightByRoute"
+      fetchSliceData('http://localhost:5000/slice3')
+        .then(data => {
+          renderSliceData(data);
+        });
+    }
+
+    function getAverageDeliveryCostByDriver() {
+      activeButton = "getAverageDeliveryCostByDriver"
+      fetchSliceData('http://localhost:5000/slice4')
+        .then(data => {
+          renderSliceData(data);
+        });
+    }
+
+    function getDeliveryCostByCargoType() {
+      activeButton = "getDeliveryCostByCargoType"
+      fetchSliceData('http://localhost:5000/slice5')
+        .then(data => {
+          renderSliceData(data);
+        });
+    }
+  </script>
+</body>
+</html>
